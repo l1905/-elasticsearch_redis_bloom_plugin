@@ -1,0 +1,17 @@
+grant {
+	  // needed because of problems in unbound LDAP library
+      permission java.util.PropertyPermission "*", "read,write";
+
+      // classloader
+      permission java.lang.RuntimePermission "setContextClassLoader";
+      permission java.lang.RuntimePermission "getClassLoader";
+
+      // socket
+      permission java.net.SocketPermission "*", "connect,resolve";
+
+      permission javax.management.MBeanServerPermission "createMBeanServer";
+      permission javax.management.MBeanServerPermission "findMBeanServer";
+      permission javax.management.MBeanPermission "org.apache.commons.pool2.impl.GenericObjectPool#-[org.apache.commons.pool2:name=pool,type=GenericObjectPool]", "registerMBean";
+      // Allow MBeanTrustPermission register
+      //permission javax.management.MBeanTrustPermission "register";
+};
