@@ -6,17 +6,15 @@ es = Elasticsearch()
 
 body = {
     "mappings": {
-        "image_search": {
-            "properties": {
-                "id": {
-                    "type": "keyword"
-                },
-                "user_id": {
-                    "type": "keyword"
-                },
-                "score": {
-                    "type": "keyword"
-                }
+        "properties": {
+            "id": {
+                "type": "keyword"
+            },
+            "user_id": {
+                "type": "keyword"
+            },
+            "score": {
+                "type": "keyword"
             }
         }
     }

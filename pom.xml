@@ -19,7 +19,7 @@
         <elasticsearch.version>7.16.0</elasticsearch.version>
 
         <elasticsearch.assembly.descriptor>src/main/assemblies/plugin.xml</elasticsearch.assembly.descriptor>
-        <elasticsearch.plugin.name>Bloomfilter</elasticsearch.plugin.name>
+        <elasticsearch.plugin.name>BloomFilter</elasticsearch.plugin.name>
         <elasticsearch.plugin.description>Bloomfilter Plugin</elasticsearch.plugin.description>
         <elasticsearch.plugin.classname>org.example.BloomfilterPlugin</elasticsearch.plugin.classname>
 

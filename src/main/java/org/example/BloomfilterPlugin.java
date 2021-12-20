@@ -237,22 +237,24 @@ public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
 
                     // 获取docid
                     public void setDocument(int docid) {
-                        logger.warn("setDocument:docid:{}", docid);
-
+//                        logger.info("setDocument:docid:{}", docid);
                         super.setDocument(docid);
                     }
 
                     @Override
                     public double execute(ExplanationHolder explanationHolder) {
-                        String score = this.getDoc().get("score").get(0).toString();
+                        double score = 0;
+                        String articleId = this.getDoc().get("article_id").get(0).toString();
 
+                        logger.info("article_id:{}", articleId);
                         // 需要判断用户对该便文章是否已读, 如果为0， 则讲分数设置为0， 其他设置为1
-                        if(historyBloomFilterHandle != null && historyBloomFilterHandle.checkHistoryShow(score)) {
-                            score = "0";
+                        if(historyBloomFilterHandle != null && historyBloomFilterHandle.checkHistoryShow(articleId)) {
+                            score = 0;
+                        } else {
+                            score = Double.parseDouble(articleId);
                         }
-
-                        // 获取分数
-                        return Double.parseDouble(score);
+                        logger.info("score:{}", score);
+                        return score;
 
                     }
                 };
