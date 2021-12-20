@@ -1,24 +1,20 @@
 package org.example;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.plugins.ScriptPlugin;
 import org.elasticsearch.script.*;
 import org.elasticsearch.search.lookup.SearchLookup;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
@@ -29,9 +25,9 @@ import java.util.concurrent.TimeUnit;
  * An example script plugin that adds a {@link ScriptEngine}
  * implementing expert scoring.
  */
-public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
+public class BloomFilterQueryFilterPlugin extends Plugin implements ScriptPlugin {
 
-    private static final Logger logger = LogManager.getLogger(BloomfilterPlugin.class.getName());
+    private static final Logger logger = LogManager.getLogger(BloomFilterQueryFilterPlugin.class.getName());
 
     @Override
     public ScriptEngine getScriptEngine(
@@ -48,8 +44,8 @@ public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
     // tag::expert_engine
     private static class BloomFilterScriptEngine implements ScriptEngine {
         // 通过这两个字段判断是否使用该插件
-        private final String _SOURCE_VALUE = "UserReadBloomFilter";
-        private final String _LANG_VALUE = "BloomFilter";
+        private final String _SOURCE_VALUE = "BloomFilterQueryFilter";
+        private final String _LANG_VALUE = "BloomFilterQueryFilter";
 
         @Override
         public String getType() {
@@ -63,14 +59,14 @@ public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
                 ScriptContext<T> context,
                 Map<String, String> params
         ) {
-            if (context.equals(ScoreScript.CONTEXT) == false) {
+            if (context.equals(FilterScript.CONTEXT) == false) {
                 throw new IllegalArgumentException(getType()
                         + " scripts cannot be used for context ["
                         + context.name + "]");
             }
             // we use the script "source" as the script identifier
             if (_SOURCE_VALUE.equals(scriptSource)) {
-                ScoreScript.Factory factory = new UserBloomFilterFactory();
+                FilterScript.Factory factory = new UserBloomFilterFactory();
                 return context.factoryClazz.cast(factory);
             }
             throw new IllegalArgumentException("Unknown script name "
@@ -84,10 +80,10 @@ public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
 
         @Override
         public Set<ScriptContext<?>> getSupportedContexts() {
-            return Set.of(ScoreScript.CONTEXT);
+            return Set.of(FilterScript.CONTEXT);
         }
 
-        private static class UserBloomFilterFactory implements ScoreScript.Factory,
+        private static class UserBloomFilterFactory implements FilterScript.Factory,
                 ScriptFactory {
             private JedisPool jedisPool;
             LoadingCache<String, HistoryBloomFilterHandle> cache;
@@ -105,7 +101,7 @@ public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
                 // 初始化Redis资源
                 String filename = "config.properties";
                 logger.info("加载配置文件 {}", filename);
-                InputStream inputStream = BloomfilterPlugin.class.getClassLoader().getResourceAsStream(filename);
+                InputStream inputStream = BloomFilterQueryFilterPlugin.class.getClassLoader().getResourceAsStream(filename);
                 Properties properties = new Properties();
                 try {
                     properties.load(inputStream);
@@ -170,7 +166,7 @@ public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
             }
 
             @Override
-            public ScoreScript.LeafFactory newFactory(
+            public FilterScript.LeafFactory newFactory(
                     Map<String, Object> params,
                     SearchLookup lookup
             ) {
@@ -178,7 +174,7 @@ public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
             }
         }
 
-        private static class UserBloomFilterLeafFactory implements ScoreScript.LeafFactory {
+        private static class UserBloomFilterLeafFactory implements FilterScript.LeafFactory {
             private final Map<String, Object> params;
             private final SearchLookup lookup;
             private final String field;
@@ -224,37 +220,27 @@ public class BloomfilterPlugin extends Plugin implements ScriptPlugin {
                 logger.info("field:{}, user_id:{}", field, userId);
             }
 
-            @Override
-            public boolean needs_score() {
-                return false;  // Return true if the script needs the score
-            }
 
             @Override
-            public ScoreScript newInstance(DocReader docReader)
+            public FilterScript newInstance(DocReader docReader)
                     throws IOException {
                 // 构造器初始化
-                return new ScoreScript(params, lookup, docReader) {
+                return new FilterScript(params, lookup, docReader) {
 
                     // 获取docid
                     public void setDocument(int docid) {
-//                        logger.info("setDocument:docid:{}", docid);
                         super.setDocument(docid);
                     }
 
                     @Override
-                    public double execute(ExplanationHolder explanationHolder) {
-                        double score = 0;
+                    public boolean execute() {
                         String articleId = this.getDoc().get("article_id").get(0).toString();
-
-                        logger.info("article_id:{}", articleId);
-                        // 需要判断用户对该便文章是否已读, 如果为0， 则讲分数设置为0， 其他设置为1
+                        logger.info("bloomFilterQueryFilter article_id:{}", articleId);
                         if(historyBloomFilterHandle != null && historyBloomFilterHandle.checkHistoryShow(articleId)) {
-                            score = 0;
-                        } else {
-                            score = Double.parseDouble(articleId);
+                            return false;
                         }
-                        logger.info("score:{}", score);
-                        return score;
+
+                        return true;
 
                     }
                 };

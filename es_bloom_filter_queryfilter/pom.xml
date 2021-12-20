@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>es_bloom</artifactId>
+    <artifactId>es_bloom_queryfilter</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <!-- 这段很重要 -->
@@ -19,9 +19,9 @@
         <elasticsearch.version>7.16.0</elasticsearch.version>
 
         <elasticsearch.assembly.descriptor>src/main/assemblies/plugin.xml</elasticsearch.assembly.descriptor>
-        <elasticsearch.plugin.name>BloomFilter</elasticsearch.plugin.name>
-        <elasticsearch.plugin.description>Bloomfilter Plugin</elasticsearch.plugin.description>
-        <elasticsearch.plugin.classname>org.example.BloomfilterPlugin</elasticsearch.plugin.classname>
+        <elasticsearch.plugin.name>BloomFilterQueryFilter</elasticsearch.plugin.name>
+        <elasticsearch.plugin.description>BloomQueryfilter Plugin</elasticsearch.plugin.description>
+        <elasticsearch.plugin.classname>org.example.BloomFilterQueryFilterPlugin</elasticsearch.plugin.classname>
 
     </properties>
 
@@ -41,7 +41,7 @@
             <version>2.9.0</version>
         </dependency>
 
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/slf4j-api &ndash;&gt;-->
+        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/slf4j-api &ndash;&gt;-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

@@ -8,14 +8,18 @@ body = {
     "mappings": {
         "properties": {
             "id": {
-                "type": "keyword"
+                "type": "Numbers"
             },
-            "user_id": {
-                "type": "keyword"
+            "article_id": {
+                "type": "Numbers"
             },
-            "score": {
-                "type": "keyword"
-            }
+            "rating_num": {
+                "type": "Numbers"
+            },
+            "comment_num": {
+                "type": "Numbers"
+            },
+
         }
     }
 }
@@ -32,8 +36,9 @@ def generator():
         yield {
 
                 'id': i,
-                "user_id": i%5,
-                "score": i,
+                "article_id": i,
+                "rating_num": i*10,
+                "comment_num": i*2,
             }
         i += 1
         if i >= 100:

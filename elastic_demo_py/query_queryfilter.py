@@ -9,32 +9,40 @@ body = {
         "excludes": ""
     },
     "sort": {
-        "_score": {
+        "article_id": {
             "order": "desc"
         }
     },
     "query": {
-        "function_score": {
-            "query": {
-                "term": {
-                    "user_id":1
-                }
-            },
-            "functions": [
+        "bool": {
+            "filter": [
                 {
-                    "script_score": {
+                    "script": {
                         "script": {
-                            "source": "UserReadBloomFilter",
-                            "lang": "BloomFilter",
+                            "source": "BloomFilterQueryFilter",
+                            "lang": "BloomFilterQueryFilter",
                             "params": {
                                 "field": "test",
                                 "user_id": "25855",
                                 "device_id": "123456",
                             }
                         }
+                    },
+                },
+                {
+                    "range": {
+                        "article_id":{
+                            "gte":"80",
+                        }
                     }
                 }
-            ]
+
+           ],
+            # "must":{
+            #     "range": {"article_id":{
+            #         "gte":"80",
+            #     }}
+            # }
         }
     }
 }
